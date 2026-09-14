@@ -1,0 +1,30 @@
+```mermaid
+erDiagram
+    TB_CATEGORIA {
+        BIGINT id PK "BIGSERIAL"
+        VARCHAR nome "NOT NULL, UNIQUE"
+        TEXT descricao
+    }
+
+    TB_EVENTO {
+        BIGINT id PK "BIGSERIAL"
+        VARCHAR titulo "NOT NULL"
+        TEXT descricao
+        TIMESTAMP data_evento "NOT NULL"
+        VARCHAR local_evento "NOT NULL"
+        NUMERIC preco "NOT NULL"
+        BIGINT categoria_id FK "NOT NULL"
+    }
+
+    TB_INSCRICAO {
+        BIGINT id PK "BIGSERIAL"
+        VARCHAR nome_participante "NOT NULL"
+        VARCHAR email_participante "NOT NULL"
+        TIMESTAMP data_inscricao "NOT NULL"
+        VARCHAR status "NOT NULL"
+        BIGINT evento_id FK "NOT NULL"
+    }
+
+    TB_CATEGORIA ||--o{ TB_EVENTO : "1:N (Uma Categoria possui N Eventos)"
+    TB_EVENTO ||--o{ TB_INSCRICAO : "1:N (Um Evento possui N Inscrições)"
+```
