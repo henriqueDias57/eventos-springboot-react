@@ -3,6 +3,7 @@ import { ThemeProvider, CssBaseline, Snackbar, Alert } from '@mui/material';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import theme from './theme';
 import Layout from './components/Layout';
+import AccessGate from './components/AccessGate';
 import Dashboard from './pages/Dashboard';
 import Categorias from './pages/Categorias';
 import Eventos from './pages/Eventos';
@@ -21,17 +22,19 @@ export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/categorias" element={<Categorias showToast={showToast} />} />
-            <Route path="/eventos" element={<Eventos showToast={showToast} />} />
-            <Route path="/inscricoes" element={<Inscricoes showToast={showToast} />} />
-            <Route path="/relatorios" element={<Relatorios />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
+      <AccessGate>
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/categorias" element={<Categorias showToast={showToast} />} />
+              <Route path="/eventos" element={<Eventos showToast={showToast} />} />
+              <Route path="/inscricoes" element={<Inscricoes showToast={showToast} />} />
+              <Route path="/relatorios" element={<Relatorios />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </AccessGate>
 
       <Snackbar
         open={toast.open}

@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar, Box, Toolbar, Typography, Drawer, List, ListItemButton,
   ListItemIcon, ListItemText, IconButton, useMediaQuery, useTheme,
+  Divider, Tooltip
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -10,6 +11,8 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import LockIcon from '@mui/icons-material/Lock';
+import { clearStoredAccessKey } from '../api';
 
 const DRAWER_WIDTH = 260;
 
@@ -33,17 +36,25 @@ export default function Layout({ children }) {
     if (isMobile) setMobileOpen(false);
   };
 
+  const handleLock = () => {
+    clearStoredAccessKey();
+    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+  };
+
   const drawerContent = (
-    <Box sx={{ pt: 2 }}>
-      <Box sx={{ px: 3, pb: 3, pt: 1 }}>
-        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.15rem' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+      <Box sx={{ px: 3, pb: 2, pt: 3 }}>
+        <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
           🎯 Gerenciador
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          Eventos & Inscrições
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
+          Eventos & Inscrições • Acesso Privado
         </Typography>
       </Box>
-      <List sx={{ px: 1.5 }}>
+
+      <Divider sx={{ my: 1, borderColor: 'rgba(0,0,0,0.06)' }} />
+
+      <List sx={{ px: 1.5, flexGrow: 1 }}>
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
@@ -52,7 +63,7 @@ export default function Layout({ children }) {
               onClick={() => handleNav(item.path)}
               sx={{
                 borderRadius: 2.5,
-                mb: 0.5,
+                mb: 0.8,
                 mx: 0.5,
                 bgcolor: isActive ? 'primary.main' : 'transparent',
                 color: isActive ? '#FFF' : 'text.primary',
@@ -60,19 +71,38 @@ export default function Layout({ children }) {
                   color: isActive ? '#FFF' : 'text.secondary',
                 },
                 '&:hover': {
-                  bgcolor: isActive ? 'primary.dark' : 'action.hover',
+                  bgcolor: isActive ? 'primary.dark' : 'rgba(99, 102, 241, 0.08)',
                 },
               }}
             >
               <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
               <ListItemText
                 primary={item.label}
-                primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: isActive ? 600 : 400 }}
+                primaryTypographyProps={{ fontSize: '0.92rem', fontWeight: isActive ? 600 : 500 }}
               />
             </ListItemButton>
           );
         })}
       </List>
+
+      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
+        <ListItemButton
+          onClick={handleLock}
+          sx={{
+            borderRadius: 2.5,
+            color: 'error.main',
+            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.08)' }
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
+            <LockIcon fontSize="small" />
+          </ListItemIcon>
+          <ListItemText
+            primary="Bloquear Sessão"
+            primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: 600 }}
+          />
+        </ListItemButton>
+      </Box>
     </Box>
   );
 
@@ -81,18 +111,25 @@ export default function Layout({ children }) {
       {/* AppBar for mobile */}
       {isMobile && (
         <AppBar position="fixed" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Toolbar>
-            <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ color: 'text.primary' }}>
-              <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700 }}>
-              🎯 Gerenciador de Eventos
-            </Typography>
+          <Toolbar sx={{ justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ color: 'text.primary', mr: 1 }}>
+                <MenuIcon />
+              </IconButton>
+              <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.05rem' }}>
+                🎯 Gerenciador de Eventos
+              </Typography>
+            </Box>
+            <Tooltip title="Bloquear Sessão">
+              <IconButton onClick={handleLock} color="error" size="small">
+                <LockIcon />
+              </IconButton>
+            </Tooltip>
           </Toolbar>
         </AppBar>
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar Desktop */}
       <Drawer
         variant={isMobile ? 'temporary' : 'permanent'}
         open={isMobile ? mobileOpen : true}
@@ -119,8 +156,9 @@ export default function Layout({ children }) {
           flexGrow: 1,
           p: { xs: 2, md: 4 },
           mt: isMobile ? 8 : 0,
-          maxWidth: '1200px',
+          maxWidth: '1280px',
           mx: 'auto',
+          width: '100%'
         }}
       >
         {children}

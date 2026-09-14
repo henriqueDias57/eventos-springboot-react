@@ -1,0 +1,63 @@
+# ============================================================================
+# RENDER BLUEPRINT (INFRAESTRUTURA COMO CÓDIGO - IaC)
+# Sistema de Gerenciamento de Eventos e Inscrições
+# ============================================================================
+
+databases:
+  - name: db-eventos-postgres
+    databaseName: db_eventos
+    user: db_eventos_user
+    plan: free
+    region: ohio
+    ipAllowList: [] # Permite conexões externas com SSL e senha forte para DBeaver/pgAdmin
+
+services:
+  # --- 1. BACKEND API (SPRING BOOT 3 + JAVA 17) ---
+  - type: web
+    name: eventos-api-backend
+    env: docker
+    dockerfilePath: ./eventos-api/Dockerfile
+    dockerContext: ./eventos-api
+    plan: free
+    region: ohio
+    healthCheckPath: /api/health
+    envVars:
+      - key: PORT
+        value: 8080
+      - key: DB_URL
+        fromDatabase:
+          name: db-eventos-postgres
+          property: connectionString
+      - key: DB_USERNAME
+        fromDatabase:
+          name: db-eventos-postgres
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: db-eventos-postgres
+          property: password
+      - key: SECURITY_ENABLED
+        value: "true"
+      - key: SECURITY_ADMIN_USERNAME
+        value: admin
+      - key: SECURITY_ADMIN_PASSWORD
+        generateValue: true
+
+  # --- 2. FRONTEND (REACT + VITE + MATERIAL UI) ---
+  - type: web
+    name: eventos-web-frontend
+    env: static
+    buildCommand: cd eventos-web && npm install && npm run build
+    staticPublishPath: ./eventos-web/dist
+    plan: free
+    region: ohio
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: eventos-api-backend
+          property: host
