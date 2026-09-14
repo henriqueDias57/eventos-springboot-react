@@ -1,315 +1,271 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Modal from '../components/Modal';
-import LoadingSkeleton from '../components/LoadingSkeleton';
-import { inscricaoService } from '../api/inscricaoService';
-import { eventoService } from '../api/eventoService';
-import { Plus, Edit3, Trash2, UserCheck, Mail, Calendar, CheckCircle2, Clock, XCircle } from 'lucide-react';
+import {
+  Box, Typography, Button, Card, TextField, MenuItem,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  IconButton, Tooltip, CircularProgress, Chip,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { inscricaoApi, eventoApi } from '../api';
+import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
+
+const emptyForm = { nomeParticipante: '', emailParticipante: '', eventoId: '', status: 'CONFIRMADA' };
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+const statusColors = {
+  CONFIRMADA: 'success',
+  PENDENTE: 'warning',
+  CANCELADA: 'error',
+};
 
 export default function Inscricoes({ showToast }) {
   const [inscricoes, setInscricoes] = useState([]);
   const [eventos, setEventos] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('TODOS');
-
-  // Modal & Form State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({
-    nomeParticipante: '',
-    emailParticipante: '',
-    status: 'CONFIRMADA',
-    eventoId: '',
-  });
-  const [formErrors, setFormErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  useEffect(() => {
-    carregarDados();
-  }, []);
-
-  const carregarDados = async () => {
+  const loadData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const [regs, evts] = await Promise.all([
-        inscricaoService.listarTodas(),
-        eventoService.listarTodos(),
-      ]);
-      setInscricoes(regs);
-      setEventos(evts);
+      const [inscRes, evtRes] = await Promise.all([inscricaoApi.listar(), eventoApi.listar()]);
+      setInscricoes(inscRes.data);
+      setEventos(evtRes.data);
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.mensagem || 'Erro ao carregar inscrições.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleOpenModal = (reg = null) => {
-    setFormErrors({});
-    if (reg) {
-      setEditingId(reg.id);
-      setFormData({
-        nomeParticipante: reg.nomeParticipante,
-        emailParticipante: reg.emailParticipante,
-        status: reg.status || 'CONFIRMADA',
-        eventoId: reg.eventoId ? reg.eventoId.toString() : '',
-      });
-    } else {
-      setEditingId(null);
-      setFormData({
-        nomeParticipante: '',
-        emailParticipante: '',
-        status: 'CONFIRMADA',
-        eventoId: eventos.length > 0 ? eventos[0].id.toString() : '',
-      });
-    }
-    setIsModalOpen(true);
+  useEffect(() => { loadData(); }, []);
+
+  const openNew = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setErrors({});
+    setDialogOpen(true);
   };
 
-  const validateForm = () => {
-    const errors = {};
-    if (!formData.nomeParticipante.trim()) errors.nomeParticipante = 'O nome do participante é obrigatório.';
-    if (!formData.emailParticipante.trim()) {
-      errors.emailParticipante = 'O e-mail é obrigatório.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.emailParticipante)) {
-      errors.emailParticipante = 'Formato de e-mail inválido.';
-    }
-    if (!formData.eventoId) errors.eventoId = 'Selecione um evento.';
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+  const openEdit = (insc) => {
+    setForm({
+      nomeParticipante: insc.nomeParticipante,
+      emailParticipante: insc.emailParticipante,
+      eventoId: insc.eventoId?.toString() || '',
+      status: insc.status || 'CONFIRMADA',
+    });
+    setEditingId(insc.id);
+    setErrors({});
+    setDialogOpen(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  const validate = () => {
+    const e = {};
+    if (!form.nomeParticipante.trim()) e.nomeParticipante = 'Preencha o nome do participante.';
+    if (!form.emailParticipante.trim()) e.emailParticipante = 'Preencha o e-mail do participante.';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.emailParticipante))
+      e.emailParticipante = 'Informe um e-mail válido (ex: nome@email.com).';
+    if (!form.eventoId) e.eventoId = 'Selecione um evento.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
 
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
     try {
-      setSaving(true);
       const payload = {
-        ...formData,
-        eventoId: parseInt(formData.eventoId),
+        ...form,
+        eventoId: parseInt(form.eventoId),
       };
-
       if (editingId) {
-        await inscricaoService.atualizar(editingId, payload);
-        showToast('Inscrição atualizada com sucesso!', 'success');
+        await inscricaoApi.atualizar(editingId, payload);
+        showToast('Inscrição atualizada com sucesso!');
       } else {
-        await inscricaoService.salvar(payload);
-        showToast('Nova inscrição realizada com sucesso!', 'success');
+        await inscricaoApi.criar(payload);
+        showToast('Inscrição realizada com sucesso!');
       }
-      setIsModalOpen(false);
-      carregarDados();
+      setDialogOpen(false);
+      loadData();
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.mensagem || 'Erro ao salvar inscrição.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id, nome) => {
-    if (window.confirm(`Tem certeza que deseja excluir/cancelar a inscrição de "${nome}"?`)) {
-      try {
-        await inscricaoService.deletar(id);
-        showToast('Inscrição excluída com sucesso!', 'success');
-        carregarDados();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+  const handleDelete = async () => {
+    try {
+      await inscricaoApi.deletar(confirmDelete);
+      showToast('Inscrição removida com sucesso!');
+      setConfirmDelete(null);
+      loadData();
+    } catch (err) {
+      showToast(err.mensagem || 'Não foi possível remover a inscrição.', 'error');
+      setConfirmDelete(null);
     }
   };
 
-  const filteredInscricoes = inscricoes.filter(r => {
-    const matchSearch =
-      r.nomeParticipante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      r.emailParticipante.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (r.tituloEvento && r.tituloEvento.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchStatus = statusFilter === 'TODOS' || r.status === statusFilter;
-    return matchSearch && matchStatus;
-  });
+  const setField = (field, value) => setForm((prev) => ({ ...prev, [field]: value }));
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
-      <Navbar title="Gerenciamento de Inscrições" subtitle="Inscrições de Participantes vinculadas a Eventos (N:1)" />
+    <Box>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4">Inscrições</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Registre participantes nos eventos — cada inscrição é vinculada a um evento
+          </Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
+          Nova Inscrição
+        </Button>
+      </Box>
 
-      {/* Action & Filter Bar */}
-      <div className="glass-panel p-4 mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
-          <input
-            type="text"
-            placeholder="Buscar participante, email ou evento..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field w-full sm:w-64"
-          />
-
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="input-field w-full sm:w-44"
-          >
-            <option value="TODOS">Todos os Status</option>
-            <option value="CONFIRMADA">CONFIRMADA</option>
-            <option value="PENDENTE">PENDENTE</option>
-            <option value="CANCELADA">CANCELADA</option>
-          </select>
-        </div>
-
-        <button onClick={() => handleOpenModal()} className="btn btn-primary w-full md:w-auto">
-          <Plus size={18} />
-          <span>Nova Inscrição</span>
-        </button>
-      </div>
-
+      {/* Content */}
       {loading ? (
-        <LoadingSkeleton rows={5} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>
+      ) : inscricoes.length === 0 ? (
+        <Card>
+          <EmptyState
+            title="Nenhuma inscrição cadastrada"
+            description="Inscreva o primeiro participante — lembre-se de cadastrar pelo menos um evento antes."
+            actionLabel="Nova Inscrição"
+            onAction={openNew}
+          />
+        </Card>
       ) : (
-        <div className="table-container glass-panel">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nome do Participante</th>
-                <th>E-mail</th>
-                <th>Evento Pai (FK)</th>
-                <th>Data Inscrição</th>
-                <th>Status</th>
-                <th className="text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredInscricoes.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center py-8 text-gray-400">
-                    Nenhuma inscrição encontrada.
-                  </td>
-                </tr>
-              ) : (
-                filteredInscricoes.map((reg) => (
-                  <tr key={reg.id} className="hover:bg-gray-800/40 transition-colors">
-                    <td className="font-mono text-xs text-gray-400">#{reg.id}</td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <UserCheck size={16} className="text-purple-400" />
-                        <span className="font-bold text-white">{reg.nomeParticipante}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-1.5 font-mono text-xs text-gray-300">
-                        <Mail size={14} className="text-gray-500" />
-                        <span>{reg.emailParticipante}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="badge badge-primary flex items-center gap-1 w-fit">
-                        <Calendar size={12} />
-                        {reg.tituloEvento}
-                      </span>
-                    </td>
-                    <td className="text-gray-300 font-mono text-xs">
-                      {reg.dataInscricao ? new Date(reg.dataInscricao).toLocaleString('pt-BR') : '—'}
-                    </td>
-                    <td>
-                      <span className={`badge ${
-                        reg.status === 'CONFIRMADA' ? 'badge-success' : reg.status === 'PENDENTE' ? 'badge-warning' : 'badge-danger'
-                      }`}>
-                        {reg.status === 'CONFIRMADA' && <CheckCircle2 size={12} />}
-                        {reg.status === 'PENDENTE' && <Clock size={12} />}
-                        {reg.status === 'CANCELADA' && <XCircle size={12} />}
-                        {reg.status}
-                      </span>
-                    </td>
-                    <td className="text-right space-x-2">
-                      <button onClick={() => handleOpenModal(reg)} className="btn btn-secondary btn-sm">
-                        <Edit3 size={14} />
-                        <span>Editar</span>
-                      </button>
-                      <button onClick={() => handleDelete(reg.id, reg.nomeParticipante)} className="btn btn-danger btn-sm">
-                        <Trash2 size={14} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Participante</TableCell>
+                  <TableCell>E-mail</TableCell>
+                  <TableCell>Evento</TableCell>
+                  <TableCell>Data da Inscrição</TableCell>
+                  <TableCell>Situação</TableCell>
+                  <TableCell align="right" width={120}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {inscricoes.map((insc) => (
+                  <TableRow key={insc.id} hover>
+                    <TableCell>
+                      <Typography fontWeight={500}>{insc.nomeParticipante}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">{insc.emailParticipante}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip label={insc.tituloEvento || `Evento #${insc.eventoId}`} size="small" color="primary" variant="outlined" />
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">{formatDate(insc.dataInscricao)}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={insc.status || 'CONFIRMADA'}
+                        size="small"
+                        color={statusColors[insc.status] || 'default'}
+                      />
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Editar">
+                        <IconButton size="small" onClick={() => openEdit(insc)} color="primary">
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Remover">
+                        <IconButton size="small" onClick={() => setConfirmDelete(insc.id)} color="error">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       )}
 
-      {/* CRUD Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Editar Inscrição' : 'Cadastrar Nova Inscrição'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Nome Completo do Participante *</label>
-            <input
-              type="text"
-              value={formData.nomeParticipante}
-              onChange={(e) => setFormData({ ...formData, nomeParticipante: e.target.value })}
-              placeholder="Ex: Ana Silva"
-              className={`input-field ${formErrors.nomeParticipante ? 'border-rose-500' : ''}`}
-            />
-            {formErrors.nomeParticipante && <p className="text-xs text-rose-400 mt-1">{formErrors.nomeParticipante}</p>}
-          </div>
+      {/* Form Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingId ? 'Editar Inscrição' : 'Nova Inscrição'}</DialogTitle>
+        <DialogContent sx={{ pt: '16px !important' }}>
+          <TextField
+            label="Nome do Participante"
+            value={form.nomeParticipante}
+            onChange={(e) => setField('nomeParticipante', e.target.value)}
+            error={!!errors.nomeParticipante}
+            helperText={errors.nomeParticipante}
+            sx={{ mb: 2.5 }}
+            autoFocus
+          />
+          <TextField
+            label="E-mail do Participante"
+            type="email"
+            value={form.emailParticipante}
+            onChange={(e) => setField('emailParticipante', e.target.value)}
+            error={!!errors.emailParticipante}
+            helperText={errors.emailParticipante}
+            sx={{ mb: 2.5 }}
+          />
+          <TextField
+            label="Evento"
+            value={form.eventoId}
+            onChange={(e) => setField('eventoId', e.target.value)}
+            error={!!errors.eventoId}
+            helperText={errors.eventoId || (eventos.length === 0 ? 'Cadastre um evento primeiro.' : '')}
+            select
+            sx={{ mb: 2.5 }}
+          >
+            {eventos.map((evt) => (
+              <MenuItem key={evt.id} value={evt.id.toString()}>
+                {evt.titulo}
+              </MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            label="Situação"
+            value={form.status}
+            onChange={(e) => setField('status', e.target.value)}
+            select
+          >
+            <MenuItem value="CONFIRMADA">Confirmada</MenuItem>
+            <MenuItem value="PENDENTE">Pendente</MenuItem>
+            <MenuItem value="CANCELADA">Cancelada</MenuItem>
+          </TextField>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDialogOpen(false)} color="inherit">Cancelar</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saving}>
+            {saving ? <CircularProgress size={22} /> : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Endereço de E-mail *</label>
-            <input
-              type="email"
-              value={formData.emailParticipante}
-              onChange={(e) => setFormData({ ...formData, emailParticipante: e.target.value })}
-              placeholder="Ex: ana.silva@email.com"
-              className={`input-field ${formErrors.emailParticipante ? 'border-rose-500' : ''}`}
-            />
-            {formErrors.emailParticipante && <p className="text-xs text-rose-400 mt-1">{formErrors.emailParticipante}</p>}
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Evento Pai (FK) *</label>
-              <select
-                value={formData.eventoId}
-                onChange={(e) => setFormData({ ...formData, eventoId: e.target.value })}
-                className={`input-field ${formErrors.eventoId ? 'border-rose-500' : ''}`}
-              >
-                <option value="">Selecione...</option>
-                {eventos.map((e) => (
-                  <option key={e.id} value={e.id.toString()}>
-                    {e.titulo}
-                  </option>
-                ))}
-              </select>
-              {formErrors.eventoId && <p className="text-xs text-rose-400 mt-1">{formErrors.eventoId}</p>}
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Status da Inscrição</label>
-              <select
-                value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="input-field"
-              >
-                <option value="CONFIRMADA">CONFIRMADA</option>
-                <option value="PENDENTE">PENDENTE</option>
-                <option value="CANCELADA">CANCELADA</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">
-              Cancelar
-            </button>
-            <button type="submit" disabled={saving} className="btn btn-primary">
-              {saving ? 'Salvando...' : editingId ? 'Atualizar' : 'Cadastrar'}
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </div>
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remover Inscrição"
+        message="Tem certeza que deseja remover esta inscrição?"
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
+    </Box>
   );
 }

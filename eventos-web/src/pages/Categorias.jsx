@@ -1,292 +1,205 @@
 import React, { useEffect, useState } from 'react';
-import Navbar from '../components/Navbar';
-import Modal from '../components/Modal';
-import LoadingSkeleton from '../components/LoadingSkeleton';
-import { categoriaService } from '../api/categoriaService';
-import { eventoService } from '../api/eventoService';
-import { Plus, Edit3, Trash2, ChevronDown, ChevronRight, Tag, Calendar, Layers } from 'lucide-react';
+import {
+  Box, Typography, Button, Card, CardContent, TextField,
+  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
+  Dialog, DialogTitle, DialogContent, DialogActions,
+  IconButton, Tooltip, CircularProgress, Chip,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { categoriaApi } from '../api';
+import ConfirmDialog from '../components/ConfirmDialog';
+import EmptyState from '../components/EmptyState';
+
+const emptyForm = { nome: '', descricao: '' };
 
 export default function Categorias({ showToast }) {
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  
-  // Modal & Form State
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
-  const [formData, setFormData] = useState({ nome: '', descricao: '' });
-  const [formErrors, setFormErrors] = useState({});
+  const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  // 1:N Expansion State
-  const [expandedId, setExpandedId] = useState(null);
-  const [childEvents, setChildEvents] = useState([]);
-  const [loadingChildren, setLoadingChildren] = useState(false);
-
-  useEffect(() => {
-    carregarCategorias();
-  }, []);
-
-  const carregarCategorias = async () => {
+  const loadData = async () => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const data = await categoriaService.listarTodas();
-      setCategorias(data);
+      const res = await categoriaApi.listar();
+      setCategorias(res.data);
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.mensagem || 'Erro ao carregar categorias.', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const toggleExpand = async (id) => {
-    if (expandedId === id) {
-      setExpandedId(null);
-      setChildEvents([]);
-    } else {
-      setExpandedId(id);
-      try {
-        setLoadingChildren(true);
-        const events = await eventoService.listarPorCategoria(id);
-        setChildEvents(events);
-      } catch (err) {
-        showToast('Erro ao carregar eventos da categoria: ' + err.message, 'error');
-      } finally {
-        setLoadingChildren(false);
-      }
-    }
+  useEffect(() => { loadData(); }, []);
+
+  const openNew = () => {
+    setForm(emptyForm);
+    setEditingId(null);
+    setErrors({});
+    setDialogOpen(true);
   };
 
-  const handleOpenModal = (cat = null) => {
-    setFormErrors({});
-    if (cat) {
-      setEditingId(cat.id);
-      setFormData({ nome: cat.nome, descricao: cat.descricao || '' });
-    } else {
-      setEditingId(null);
-      setFormData({ nome: '', descricao: '' });
-    }
-    setIsModalOpen(true);
+  const openEdit = (cat) => {
+    setForm({ nome: cat.nome, descricao: cat.descricao || '' });
+    setEditingId(cat.id);
+    setErrors({});
+    setDialogOpen(true);
   };
 
-  const validateForm = () => {
-    const errors = {};
-    if (!formData.nome.trim()) {
-      errors.nome = 'O nome da categoria é obrigatório.';
-    } else if (formData.nome.length > 100) {
-      errors.nome = 'O nome deve ter no máximo 100 caracteres.';
-    }
-    setFormErrors(errors);
-    return Object.keys(errors).length === 0;
+  const validate = () => {
+    const e = {};
+    if (!form.nome.trim()) e.nome = 'Preencha o nome da categoria.';
+    if (form.nome.length > 100) e.nome = 'O nome não pode exceder 100 caracteres.';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
+  const handleSave = async () => {
+    if (!validate()) return;
+    setSaving(true);
     try {
-      setSaving(true);
       if (editingId) {
-        await categoriaService.atualizar(editingId, formData);
-        showToast('Categoria atualizada com sucesso!', 'success');
+        await categoriaApi.atualizar(editingId, form);
+        showToast('Categoria atualizada com sucesso!');
       } else {
-        await categoriaService.salvar(formData);
-        showToast('Nova categoria cadastrada com sucesso!', 'success');
+        await categoriaApi.criar(form);
+        showToast('Categoria criada com sucesso!');
       }
-      setIsModalOpen(false);
-      carregarCategorias();
+      setDialogOpen(false);
+      loadData();
     } catch (err) {
-      showToast(err.message, 'error');
+      showToast(err.mensagem || 'Erro ao salvar categoria.', 'error');
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (id, nome) => {
-    if (window.confirm(`Tem certeza que deseja excluir a categoria "${nome}"? Todos os eventos atrelados a ela serão deletados em cascata.`)) {
-      try {
-        await categoriaService.deletar(id);
-        showToast('Categoria excluída com sucesso!', 'success');
-        carregarCategorias();
-      } catch (err) {
-        showToast(err.message, 'error');
-      }
+  const handleDelete = async () => {
+    try {
+      await categoriaApi.deletar(confirmDelete);
+      showToast('Categoria removida com sucesso!');
+      setConfirmDelete(null);
+      loadData();
+    } catch (err) {
+      showToast(err.mensagem || 'Não foi possível remover. Verifique se há eventos vinculados.', 'error');
+      setConfirmDelete(null);
     }
   };
 
-  const filteredCategorias = categorias.filter(c =>
-    c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (c.descricao && c.descricao.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
   return (
-    <div className="flex-1 p-6 overflow-y-auto">
-      <Navbar title="Gerenciamento de Categorias" subtitle="Entidade Pai no relacionamento 1:N com Eventos" />
+    <Box>
+      {/* Header */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
+        <Box>
+          <Typography variant="h4">Categorias</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Organize seus eventos por tipo — ex: Workshop, Palestra, Conferência
+          </Typography>
+        </Box>
+        <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
+          Nova Categoria
+        </Button>
+      </Box>
 
-      {/* Action Bar */}
-      <div className="glass-panel p-4 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="w-full sm:w-72">
-          <input
-            type="text"
-            placeholder="Buscar por nome ou descrição..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="input-field"
-          />
-        </div>
-
-        <button onClick={() => handleOpenModal()} className="btn btn-primary w-full sm:w-auto">
-          <Plus size={18} />
-          <span>Nova Categoria</span>
-        </button>
-      </div>
-
+      {/* Content */}
       {loading ? (
-        <LoadingSkeleton rows={5} />
+        <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+          <CircularProgress />
+        </Box>
+      ) : categorias.length === 0 ? (
+        <Card>
+          <EmptyState
+            title="Nenhuma categoria cadastrada"
+            description="Crie a primeira categoria para começar a organizar seus eventos."
+            actionLabel="Criar Categoria"
+            onAction={openNew}
+          />
+        </Card>
       ) : (
-        <div className="table-container glass-panel">
-          <table className="custom-table">
-            <thead>
-              <tr>
-                <th style={{ width: '40px' }}></th>
-                <th>ID</th>
-                <th>Nome da Categoria</th>
-                <th>Descrição</th>
-                <th className="text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCategorias.length === 0 ? (
-                <tr>
-                  <td colSpan="5" className="text-center py-8 text-gray-400">
-                    Nenhuma categoria encontrada.
-                  </td>
-                </tr>
-              ) : (
-                filteredCategorias.map((cat) => (
-                  <React.Fragment key={cat.id}>
-                    <tr className="hover:bg-gray-800/40 transition-colors">
-                      <td>
-                        <button
-                          onClick={() => toggleExpand(cat.id)}
-                          className="p-1 rounded text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
-                          title="Expandir eventos associados (Relacionamento 1:N)"
-                        >
-                          {expandedId === cat.id ? <ChevronDown size={18} className="text-indigo-400" /> : <ChevronRight size={18} />}
-                        </button>
-                      </td>
-                      <td className="font-mono text-xs text-gray-400">#{cat.id}</td>
-                      <td>
-                        <div className="flex items-center gap-2">
-                          <Tag size={16} className="text-indigo-400" />
-                          <span className="font-bold text-white">{cat.nome}</span>
-                        </div>
-                      </td>
-                      <td className="text-gray-300 max-w-md truncate">{cat.descricao || '—'}</td>
-                      <td className="text-right space-x-2">
-                        <button
-                          onClick={() => handleOpenModal(cat)}
-                          className="btn btn-secondary btn-sm"
-                          title="Editar Categoria"
-                        >
-                          <Edit3 size={14} />
-                          <span>Editar</span>
-                        </button>
-                        <button
-                          onClick={() => handleDelete(cat.id, cat.nome)}
-                          className="btn btn-danger btn-sm"
-                          title="Excluir Categoria"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </td>
-                    </tr>
-
-                    {/* 1:N Relationship Nested Details Row */}
-                    {expandedId === cat.id && (
-                      <tr className="bg-indigo-950/30">
-                        <td colSpan="5" className="p-4 border-b border-indigo-900/50">
-                          <div className="pl-6 border-l-2 border-indigo-500 space-y-3">
-                            <div className="flex items-center gap-2 text-xs font-semibold text-indigo-300 uppercase tracking-wider">
-                              <Layers size={14} />
-                              <span>Registros Filhos Associados (Relacionamento 1:N - Eventos desta Categoria)</span>
-                            </div>
-
-                            {loadingChildren ? (
-                              <p className="text-xs text-gray-400 italic">Carregando eventos associados...</p>
-                            ) : childEvents.length === 0 ? (
-                              <p className="text-xs text-gray-400 italic">Nenhum evento associado a esta categoria ainda.</p>
-                            ) : (
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 pt-1">
-                                {childEvents.map((evt) => (
-                                  <div key={evt.id} className="glass-card p-3 rounded-xl border-indigo-500/20 text-xs space-y-1">
-                                    <div className="flex items-center justify-between">
-                                      <span className="font-bold text-white flex items-center gap-1.5">
-                                        <Calendar size={14} className="text-cyan-400" />
-                                        {evt.titulo}
-                                      </span>
-                                      <span className="font-mono text-[10px] text-gray-400">#{evt.id}</span>
-                                    </div>
-                                    <p className="text-gray-400 text-[11px]">{evt.localEvento}</p>
-                                    <p className="font-mono text-emerald-400 font-semibold">
-                                      R$ {(evt.preco || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
-                                    </p>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <Card>
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Nome</TableCell>
+                  <TableCell>Descrição</TableCell>
+                  <TableCell align="right" width={120}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {categorias.map((cat) => (
+                  <TableRow key={cat.id} hover>
+                    <TableCell>
+                      <Typography fontWeight={500}>{cat.nome}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="body2" color="text.secondary">
+                        {cat.descricao || '—'}
+                      </Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Tooltip title="Editar">
+                        <IconButton size="small" onClick={() => openEdit(cat)} color="primary">
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Remover">
+                        <IconButton size="small" onClick={() => setConfirmDelete(cat.id)} color="error">
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       )}
 
-      {/* CRUD Modal */}
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingId ? 'Editar Categoria' : 'Cadastrar Nova Categoria'}
-      >
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Nome da Categoria *</label>
-            <input
-              type="text"
-              value={formData.nome}
-              onChange={(e) => setFormData({ ...formData, nome: e.target.value })}
-              placeholder="Ex: Tecnologia, Workshop, Cultura"
-              className={`input-field ${formErrors.nome ? 'border-rose-500' : ''}`}
-            />
-            {formErrors.nome && <p className="text-xs text-rose-400 mt-1">{formErrors.nome}</p>}
-          </div>
+      {/* Form Dialog */}
+      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>{editingId ? 'Editar Categoria' : 'Nova Categoria'}</DialogTitle>
+        <DialogContent sx={{ pt: '16px !important' }}>
+          <TextField
+            label="Nome da Categoria"
+            value={form.nome}
+            onChange={(e) => setForm({ ...form, nome: e.target.value })}
+            error={!!errors.nome}
+            helperText={errors.nome}
+            sx={{ mb: 2.5 }}
+            autoFocus
+          />
+          <TextField
+            label="Descrição (opcional)"
+            value={form.descricao}
+            onChange={(e) => setForm({ ...form, descricao: e.target.value })}
+            multiline
+            rows={3}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button onClick={() => setDialogOpen(false)} color="inherit">Cancelar</Button>
+          <Button onClick={handleSave} variant="contained" disabled={saving}>
+            {saving ? <CircularProgress size={22} /> : 'Salvar'}
+          </Button>
+        </DialogActions>
+      </Dialog>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-300 uppercase mb-1">Descrição</label>
-            <textarea
-              rows="3"
-              value={formData.descricao}
-              onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
-              placeholder="Descreva brevemente o propósito desta categoria..."
-              className="input-field"
-            ></textarea>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-3 border-t border-gray-800">
-            <button type="button" onClick={() => setIsModalOpen(false)} className="btn btn-secondary">
-              Cancelar
-            </button>
-            <button type="submit" disabled={saving} className="btn btn-primary">
-              {saving ? 'Salvando...' : editingId ? 'Atualizar' : 'Cadastrar'}
-            </button>
-          </div>
-        </form>
-      </Modal>
-    </div>
+      {/* Confirm Delete */}
+      <ConfirmDialog
+        open={!!confirmDelete}
+        title="Remover Categoria"
+        message="Tem certeza que deseja remover esta categoria? Eventos vinculados a ela também podem ser afetados."
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmDelete(null)}
+      />
+    </Box>
   );
 }
