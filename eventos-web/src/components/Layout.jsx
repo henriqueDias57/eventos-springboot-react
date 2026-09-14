@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AppBar, Box, Toolbar, Typography, Drawer, List, ListItemButton,
   ListItemIcon, ListItemText, IconButton, useMediaQuery, useTheme,
-  Divider, Tooltip
+  Divider
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -11,8 +11,6 @@ import CategoryIcon from '@mui/icons-material/Category';
 import EventIcon from '@mui/icons-material/Event';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import LockIcon from '@mui/icons-material/Lock';
-import { clearStoredAccessKey } from '../api';
 
 const DRAWER_WIDTH = 260;
 
@@ -36,11 +34,6 @@ export default function Layout({ children }) {
     if (isMobile) setMobileOpen(false);
   };
 
-  const handleLock = () => {
-    clearStoredAccessKey();
-    window.dispatchEvent(new CustomEvent('auth:unauthorized'));
-  };
-
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ px: 3, pb: 2, pt: 3 }}>
@@ -48,7 +41,7 @@ export default function Layout({ children }) {
           🎯 Gerenciador
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
-          Eventos & Inscrições • Acesso Privado
+          Eventos & Inscrições
         </Typography>
       </Box>
 
@@ -84,25 +77,6 @@ export default function Layout({ children }) {
           );
         })}
       </List>
-
-      <Box sx={{ p: 2, borderTop: '1px solid', borderColor: 'divider' }}>
-        <ListItemButton
-          onClick={handleLock}
-          sx={{
-            borderRadius: 2.5,
-            color: 'error.main',
-            '&:hover': { bgcolor: 'rgba(239, 68, 68, 0.08)' }
-          }}
-        >
-          <ListItemIcon sx={{ minWidth: 40, color: 'error.main' }}>
-            <LockIcon fontSize="small" />
-          </ListItemIcon>
-          <ListItemText
-            primary="Bloquear Sessão"
-            primaryTypographyProps={{ fontSize: '0.88rem', fontWeight: 600 }}
-          />
-        </ListItemButton>
-      </Box>
     </Box>
   );
 
@@ -111,20 +85,13 @@ export default function Layout({ children }) {
       {/* AppBar for mobile */}
       {isMobile && (
         <AppBar position="fixed" elevation={0} sx={{ bgcolor: 'background.paper', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Toolbar sx={{ justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ color: 'text.primary', mr: 1 }}>
-                <MenuIcon />
-              </IconButton>
-              <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.05rem' }}>
-                🎯 Gerenciador de Eventos
-              </Typography>
-            </Box>
-            <Tooltip title="Bloquear Sessão">
-              <IconButton onClick={handleLock} color="error" size="small">
-                <LockIcon />
-              </IconButton>
-            </Tooltip>
+          <Toolbar>
+            <IconButton edge="start" onClick={() => setMobileOpen(true)} sx={{ color: 'text.primary', mr: 1 }}>
+              <MenuIcon />
+            </IconButton>
+            <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.05rem' }}>
+              🎯 Gerenciador de Eventos
+            </Typography>
           </Toolbar>
         </AppBar>
       )}
