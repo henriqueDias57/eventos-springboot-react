@@ -1,0 +1,37 @@
+# ============================================================================
+# GITIGNORE - SISTEMA DE GERENCIAMENTO DE EVENTOS
+# ============================================================================
+
+# Java / Spring Boot / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.mvn/
+
+# Node.js / React / Vite
+**/node_modules/
+**/dist/
+**/dist-ssr/
+*.local
+
+# Variáveis de Ambiente & Chaves Sensíveis
+.env
+.env.*
+!.env.example
+
+# IDEs & Editores de Código
+.vscode/
+.idea/
+*.iws
+*.iml
+*.ipr
+.classpath
+.project
+.settings/
+.DS_Store
+Thumbs.db
+maven.zip
+apache-maven-3.9.6/
