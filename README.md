@@ -1,75 +1,75 @@
-# 🎯 Gerenciador de Eventos e Inscrições
+# Gerenciador de Eventos e Inscrições
 
-> Projeto acadêmico de Banco de Dados — **Spring Boot 3 + React + PostgreSQL** (Execução 100% Local)
+Trabalho prático da disciplina de Banco de Dados desenvolvido com **Spring Boot 3**, **React** e **PostgreSQL**.
 
-Sistema web para criar e gerenciar **categorias**, **eventos** e **inscrições de participantes**, com relatórios visuais e gráficos interativos, executando inteiramente no seu computador.
-
----
-
-## 💻 Como Rodar o Projeto no seu Computador
-
-### 📋 Pré-requisitos
-- **Java 17+** (JDK)
-- **Node.js 18+** e **npm**
-- **PostgreSQL 14+** (ou Docker instalado)
+O sistema gerencia categorias, eventos e inscrições de participantes, incluindo relatórios com consultas agregadas em SQL nativo.
 
 ---
 
-### 🚀 Opção 1: Inicialização em 2 Cliques (Windows)
+## Como Executar o Projeto Localmente
 
-Na pasta raiz do projeto, basta dar duplo clique nos arquivos:
-
-1. **`iniciar_backend.bat`** → Inicia a API Spring Boot na porta `8080`.
-2. **`iniciar_frontend.bat`** → Inicia o Frontend React na porta `3000`.
-
-Depois abra o navegador em: **`http://localhost:3000`**
+### Pré-requisitos
+- **Java 17 JDK** (ou superior)
+- **Node.js 18+** com npm
+- **PostgreSQL 14+** (ou Docker)
 
 ---
 
-### ⚙️ Opção 2: Inicialização pelo Terminal
+### Execução Rápida no Windows
+
+Na pasta raiz do projeto, execute os scripts:
+
+1. Execute `iniciar_backend.bat` para iniciar a API na porta 8080.
+2. Execute `iniciar_frontend.bat` para iniciar o React na porta 3000.
+3. Acesse `http://localhost:3000` no navegador.
+
+---
+
+### Execução via Terminal
 
 #### 1. Banco de Dados PostgreSQL
-Certifique-se de que o PostgreSQL está rodando na porta `5432` com o banco `db_eventos` criado.  
-*Se preferir usar Docker:*
+Certifique-se de que o PostgreSQL está rodando na porta 5432 com o banco `db_eventos` criado.  
+Caso utilize Docker:
 ```bash
 docker compose up -d
 ```
 
 #### 2. Backend (Spring Boot)
-Abra um terminal na pasta `eventos-api`:
+No terminal, dentro da pasta `eventos-api`:
 ```bash
 mvn spring-boot:run
 ```
-> O backend iniciará em `http://localhost:8080`. Os scripts `schema.sql` (tabelas) e `data.sql` (dados iniciais) são executados automaticamente pelo Spring Boot.
+O backend estará acessível em `http://localhost:8080`. Os scripts `schema.sql` e `data.sql` são carregados automaticamente.
 
-#### 3. Frontend (React + Vite)
-Abra outro terminal na pasta `eventos-web`:
+#### 3. Frontend (React)
+Em outro terminal, dentro da pasta `eventos-web`:
 ```bash
 npm install
 npm run dev
 ```
-> O frontend estará disponível em `http://localhost:3000`.
+O frontend estará acessível em `http://localhost:3000`.
 
 ---
 
-## 🧭 Telas e Funcionalidades
+## Telas da Aplicação
 
-- **Painel Inicial (`/`)**: Resumo de totais de categorias, eventos, participantes e faturamento estimado.
-- **Categorias (`/categorias`)**: Cadastro, edição e exclusão de categorias temáticas.
-- **Eventos (`/eventos`)**: Visualização em cards com data, local, preço e vagas.
-- **Inscrições (`/inscricoes`)**: Gestão de participantes com status (Confirmada, Pendente, Cancelada).
-- **Relatórios (`/relatorios`)**: Gráficos de barras e donuts gerados a partir de consultas SQL nativas (*Native Queries*).
-
----
-
-## 🛠️ Tecnologias Utilizadas
-
-- **Backend**: Java 17, Spring Boot 3.2.4, Spring Data JPA, Hibernate, PostgreSQL Driver, Maven.
-- **Frontend**: React 18, Vite, Material UI v5 (MUI), Recharts (Gráficos), Axios.
-- **Banco de Dados**: PostgreSQL com chaves estrangeiras, constraints e Native Queries agregadas.
+- **Painel Inicial (`/`)**: Visão geral de métricas consolidadas e atalhos rápidos.
+- **Categorias (`/categorias`)**: Listagem, cadastro, edição e exclusão de categorias.
+- **Eventos (`/eventos`)**: Exibição em cards com informações de data, local, preço e categoria.
+- **Inscrições (`/inscricoes`)**: Cadastro de participantes e controle de status da inscrição.
+- **Relatórios (`/relatorios`)**: Gráficos estatísticos e de faturamento alimentados por Native Queries no PostgreSQL.
 
 ---
 
-## 📄 Documentação e Relatórios
-- [RELATORIO_REVERSAO.md](file:///c:/Users/Henrique/Desktop/BD_TRABALHO/RELATORIO_REVERSAO.md) — Relatório detalhado da reversão para ambiente 100% local.
-- [RELATORIO_AUDITORIA.md](file:///c:/Users/Henrique/Desktop/BD_TRABALHO/RELATORIO_AUDITORIA.md) — Auditoria técnica do backend e arquitetura de dados.
+## Estrutura de Tecnologias
+
+- **Backend:** Java 17, Spring Boot 3.2.4, Spring Data JPA, Hibernate, PostgreSQL Driver.
+- **Frontend:** React 18, Vite, Material UI (MUI v5), Recharts, Axios.
+- **Banco de Dados:** PostgreSQL com integridade referencial e Native Queries.
+
+---
+
+## Documentação Técnica
+- [DOCUMENTACAO_COMPLETA.md](DOCUMENTACAO_COMPLETA.md) — Explicação detalhada da arquitetura, banco de dados, rotas e perguntas para defesa.
+- [COMO_RODAR_EM_OUTRO_PC.md](COMO_RODAR_EM_OUTRO_PC.md) — Passo a passo para executar o projeto em outro computador.
+- [RELATORIO_REVERSAO.md](RELATORIO_REVERSAO.md) — Detalhes da reversão de deploy para execução local.

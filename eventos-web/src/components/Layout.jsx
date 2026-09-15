@@ -38,7 +38,7 @@ export default function Layout({ children }) {
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <Box sx={{ px: 3, pb: 2, pt: 3 }}>
         <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 800, fontSize: '1.2rem', letterSpacing: '-0.5px' }}>
-          🎯 Gerenciador
+          Gerenciador
         </Typography>
         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
           Eventos & Inscrições
@@ -90,7 +90,7 @@ export default function Layout({ children }) {
               <MenuIcon />
             </IconButton>
             <Typography variant="h6" sx={{ color: 'primary.main', fontWeight: 700, fontSize: '1.05rem' }}>
-              🎯 Gerenciador de Eventos
+              Gerenciador de Eventos
             </Typography>
           </Toolbar>
         </AppBar>

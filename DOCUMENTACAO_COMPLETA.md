@@ -422,3 +422,15 @@ Este documento foi estruturado e consolidado com a colaboração dos agentes esp
 | **Agente de Banco de Dados (`database-architect`)** | Modelagem SQL | Diagrama relacional, detalhamento de tabelas e explicação linha por linha da Native Query. |
 | **Agente de Backend (`backend-architect`)** | Engenharia Java | Explicação da arquitetura em camadas, catálogo de rotas da API e testes em JUnit. |
 | **Agente de Frontend (`senior-frontend`)** | Interface React | Descrição dos componentes visuais, gerenciamento de estado (`useState`/`useEffect`) e Axios. |
+
+---
+
+## 10. Registro da Limpeza e Padronização do Repositório
+
+Após a conclusão da documentação, foi realizada uma revisão geral no código-fonte e na documentação para assegurar clareza, consistência e profissionalismo:
+
+1. **Remoção de Emojis Decorativos:** Todos os títulos, seções e logs foram limpos de emojis genéricos decorativos no código e documentação.
+2. **Revisão de Comentários de Código:** Foram preservados apenas os comentários que explicam decisões de arquitetura e regras de negócio não triviais (ex: integridade referencial, consultas nativas com agregação e tratamento de exceções).
+3. **Ajuste de Tom da Documentação:** Redação revisada com linguagem direta, técnica e estruturada para apresentação acadêmica.
+4. **Eliminação de Resíduos e Arquivos Órfãos:** Removidos arquivos de configuração temporários de nuvem (`Dockerfile` de deploy remoto, configurações de proxy desnecessárias e logs locais).
+
