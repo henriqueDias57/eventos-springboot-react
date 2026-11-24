@@ -1,21 +1,17 @@
 -- ============================================================================
--- SCRIPT DDL COMPATÍVEL COM POSTGRESQL & H2 (REVISADO E AUDITADO)
--- Projeto Acadêmico de Banco de Dados: Sistema de Gerenciamento de Eventos
+-- SCRIPT DDL COMPATÍVEL COM POSTGRESQL & H2 (IDEMPOTENTE)
+-- Projeto Acadêmico de Banco de Dados 2: Sistema de Gerenciamento de Eventos
 -- ============================================================================
 
-DROP TABLE IF EXISTS tb_inscricao CASCADE;
-DROP TABLE IF EXISTS tb_evento CASCADE;
-DROP TABLE IF EXISTS tb_categoria CASCADE;
-
 -- 1. Tabela Categoria
-CREATE TABLE tb_categoria (
+CREATE TABLE IF NOT EXISTS tb_categoria (
     id BIGSERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL UNIQUE,
     descricao TEXT
 );
 
 -- 2. Tabela Evento (Relacionamento 1:N com Categoria)
-CREATE TABLE tb_evento (
+CREATE TABLE IF NOT EXISTS tb_evento (
     id BIGSERIAL PRIMARY KEY,
     titulo VARCHAR(150) NOT NULL,
     descricao TEXT,
@@ -27,7 +23,7 @@ CREATE TABLE tb_evento (
 );
 
 -- 3. Tabela Inscricao (Relacionamento 1:N com Evento)
-CREATE TABLE tb_inscricao (
+CREATE TABLE IF NOT EXISTS tb_inscricao (
     id BIGSERIAL PRIMARY KEY,
     nome_participante VARCHAR(150) NOT NULL,
     email_participante VARCHAR(150) NOT NULL,
@@ -38,9 +34,8 @@ CREATE TABLE tb_inscricao (
 );
 
 -- ============================================================================
--- ÍNDICES DE DESEMPENHO (AUDITORIA DE BANCO DE DADOS)
--- Otimização para JOINs e consultas agregadas via Native Query
+-- ÍNDICES DE DESEMPENHO (Otimização para JOINs e Native Queries)
 -- ============================================================================
-CREATE INDEX idx_evento_categoria ON tb_evento (categoria_id);
-CREATE INDEX idx_inscricao_evento ON tb_inscricao (evento_id);
-CREATE INDEX idx_inscricao_email ON tb_inscricao (email_participante);
+CREATE INDEX IF NOT EXISTS idx_evento_categoria ON tb_evento (categoria_id);
+CREATE INDEX IF NOT EXISTS idx_inscricao_evento ON tb_inscricao (evento_id);
+CREATE INDEX IF NOT EXISTS idx_inscricao_email ON tb_inscricao (email_participante);
