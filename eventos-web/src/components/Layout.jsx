@@ -121,6 +121,7 @@ export default function Layout({ children }) {
         component="main"
         sx={{
           flexGrow: 1,
+          minWidth: 0,
           p: { xs: 2, md: 4 },
           mt: isMobile ? 8 : 0,
           maxWidth: '1280px',

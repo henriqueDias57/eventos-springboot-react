@@ -31,6 +31,7 @@ function formatCurrency(val) {
 export default function Eventos({ showToast }) {
   const [eventos, setEventos] = useState([]);
   const [categorias, setCategorias] = useState([]);
+  const [categoriaFiltro, setCategoriaFiltro] = useState('');
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -39,10 +40,13 @@ export default function Eventos({ showToast }) {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const loadData = async () => {
+  const loadData = async (catId = categoriaFiltro) => {
     setLoading(true);
     try {
-      const [evtRes, catRes] = await Promise.all([eventoApi.listar(), categoriaApi.listar()]);
+      const [evtRes, catRes] = await Promise.all([
+        catId ? eventoApi.listarPorCategoria(catId) : eventoApi.listar(),
+        categoriaApi.listar(),
+      ]);
       setEventos(evtRes.data);
       setCategorias(catRes.data);
     } catch (err) {
@@ -52,7 +56,7 @@ export default function Eventos({ showToast }) {
     }
   };
 
-  useEffect(() => { loadData(); }, []);
+  useEffect(() => { loadData(categoriaFiltro); }, [categoriaFiltro]);
 
   const openNew = () => {
     setForm(emptyForm);
@@ -138,9 +142,27 @@ export default function Eventos({ showToast }) {
             Crie e gerencie seus eventos — cada evento pertence a uma categoria
           </Typography>
         </Box>
-        <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
-          Novo Evento
-        </Button>
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+          <TextField
+            select
+            size="small"
+            label="Filtrar por categoria"
+            value={categoriaFiltro}
+            onChange={(e) => setCategoriaFiltro(e.target.value)}
+            sx={{ minWidth: 220 }}
+            fullWidth={false}
+          >
+            <MenuItem value="">Todas as categorias</MenuItem>
+            {categorias.map((cat) => (
+              <MenuItem key={cat.id} value={cat.id.toString()}>
+                {cat.nome}
+              </MenuItem>
+            ))}
+          </TextField>
+          <Button variant="contained" startIcon={<AddIcon />} onClick={openNew}>
+            Novo Evento
+          </Button>
+        </Box>
       </Box>
 
       {/* Content */}

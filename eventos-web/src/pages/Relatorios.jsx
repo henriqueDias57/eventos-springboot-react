@@ -92,7 +92,9 @@ export default function Relatorios() {
         <Grid item xs={12} sm={4}>
           <Card sx={{ textAlign: 'center', bgcolor: '#8B5CF6', color: '#FFF' }}>
             <CardContent sx={{ py: 3 }}>
-              <Typography variant="h3" fontWeight={700}>{formatCurrency(totalFaturamento)}</Typography>
+              <Typography variant="h3" fontWeight={700} sx={{ fontSize: { xs: '1.75rem', sm: '2.25rem', md: '3rem' } }}>
+                {formatCurrency(totalFaturamento)}
+              </Typography>
               <Typography variant="body1" sx={{ opacity: 0.85 }}>Faturamento Estimado</Typography>
             </CardContent>
           </Card>

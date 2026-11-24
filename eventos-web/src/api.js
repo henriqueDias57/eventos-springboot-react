@@ -1,8 +1,12 @@
 import axios from 'axios';
 
+const apiBaseUrl = import.meta.env.VITE_API_URL
+  ? `${import.meta.env.VITE_API_URL.replace(/\/+$/, '')}/api`
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
-  timeout: 10000,
+  baseURL: apiBaseUrl,
+  timeout: 60000,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -23,8 +27,10 @@ api.interceptors.response.use(
       } else if (status === 500) {
         mensagem = 'Erro interno do servidor. Tente novamente em alguns instantes.';
       }
+    } else if (error.code === 'ECONNABORTED') {
+      mensagem = 'O servidor demorou para responder (pode estar acordando no Render). Tente novamente em alguns segundos.';
     } else if (error.code === 'ERR_NETWORK') {
-      mensagem = 'Sem conexão com o backend local (porta 8080). Verifique se o Spring Boot está rodando.';
+      mensagem = 'Sem conexão com a API. Verifique se o backend está no ar.';
     }
 
     return Promise.reject({ mensagem, status: error.response?.status, original: error });
