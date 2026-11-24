@@ -93,6 +93,8 @@ npm run dev
 
 ## 4. Diagnóstico de Problemas Comuns
 
-1. **Erro de conexão com o banco:** Verifique se o serviço do PostgreSQL está ativo e se a base `db_eventos` foi criada.
-2. **Erro de senha do PostgreSQL:** Caso a senha local seja diferente de `postgres`, atualize o campo `spring.datasource.password` no arquivo `eventos-api/src/main/resources/application.properties`.
-3. **Porta em uso:** Certifique-se de que nenhum outro serviço esteja ocupando as portas 8080 ou 3000.
+1. **Erro de versão do Java:** O Spring Boot 3 exige obrigatoriamente Java 17 LTS ou superior. Se o comando `java -version` mostrar Java 8 (1.8), instale o Java 17/21 (Adoptium Temurin) ou defina a variável `JAVA_HOME` no arquivo `iniciar_backend.bat`.
+2. **Erro de conexão com o banco:** Verifique se o serviço do PostgreSQL está ativo e se a base `db_eventos` foi criada (`CREATE DATABASE db_eventos;`).
+3. **Erro de senha do PostgreSQL:** Caso a senha local seja diferente de `postgres`, atualize a linha `spring.datasource.password` no arquivo `eventos-api/src/main/resources/application.properties` ou altere a senha do PostgreSQL local com `ALTER USER postgres WITH PASSWORD 'postgres';`.
+4. **Erro 500 no Swagger UI:** Verifique se a dependência `springdoc-openapi-starter-webmvc-ui` está presente no `eventos-api/pom.xml`.
+5. **Porta em uso:** Certifique-se de que nenhum outro serviço esteja ocupando as portas 8080 ou 3000.
