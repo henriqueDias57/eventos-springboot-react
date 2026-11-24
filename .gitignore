@@ -21,6 +21,7 @@
 .env
 .env.*
 !.env.example
+.vercel/
 
 # IDEs & Editores de Código
 .vscode/
