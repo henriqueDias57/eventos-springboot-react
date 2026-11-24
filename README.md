@@ -163,10 +163,5 @@ Acesse: **`http://localhost:3000`**
 
 ## Documentação Adicional
 
+- [docs/DOCUMENTACAO.md](docs/DOCUMENTACAO.md) — Arquitetura, banco de dados, catálogo de rotas, frontend e perguntas para defesa
 - [docs/COMPARATIVO.md](docs/COMPARATIVO.md) — Auditoria técnica, comparativos entre documentos/código e melhorias futuras
-- [DOCUMENTACAO_COMPLETA.md](DOCUMENTACAO_COMPLETA.md) — Explicação didática da arquitetura e banco de dados
-- [COMO_RODAR_EM_OUTRO_PC.md](COMO_RODAR_EM_OUTRO_PC.md) — Guia passo a passo para executar em outra máquina
-- [docs/RELATORIO_REVERSAO.md](docs/RELATORIO_REVERSAO.md) — Histórico de reversão da tentativa anterior de deploy
-- [docs/RELATORIO_AUDITORIA.md](docs/RELATORIO_AUDITORIA.md) — Relatório de auditoria técnica do backend
-- [docs/RELATORIO_FRONTEND_V2.md](docs/RELATORIO_FRONTEND_V2.md) — Relatório da refatoração visual com Material UI
-- [docs/RELATORIO_SINCRONIZACAO.md](docs/RELATORIO_SINCRONIZACAO.md) — Relatório de sincronização local vs. GitHub
