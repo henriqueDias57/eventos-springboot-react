@@ -1,7 +1,6 @@
 # Documentação Técnica — Sistema de Gerenciamento de Eventos e Inscrições
 
 **Disciplina:** Banco de Dados 2 — 6º Semestre — Engenharia da Computação — **Universidade de Taubaté (UNITAU)**  
-**Entrega:** Segunda entrega (`06/10/2026`)  
 **Grupo:** Henrique Dias Ferreira, Vinicius Souza e Santos, João Pedro Beserra, Luan Eduardo Monteiro  
 **Tecnologias:** Java 17, Spring Boot 3.2.4, React 18, Vite 5, Material UI (`@mui/material`), Recharts, Axios, PostgreSQL
 

@@ -2,7 +2,6 @@
 
 **Projeto:** Sistema de Gerenciamento de Eventos e Inscrições (`eventos-springboot-react`)  
 **Disciplina:** Banco de Dados 2 — 6º Semestre — Engenharia da Computação — Universidade de Taubaté (UNITAU)  
-**Entrega:** Segunda entrega (06/10/2026)  
 **Grupo:** Henrique Dias Ferreira, Vinicius Souza e Santos, João Pedro Beserra, Luan Eduardo Monteiro
 
 ---
@@ -27,7 +26,7 @@
 
 | Item | O que o `README.md` anterior dizia | O que existe no código real |
 |---|---|---|
-| Disciplina / Turma / Grupo | Citava apenas "disciplina de Banco de Dados", sem citar Banco de Dados 2, UNITAU, entrega nem integrantes | Trabalho de Banco de Dados 2, 6º sem., Eng. da Computação, UNITAU (06/10/2026) e 4 integrantes |
+| Disciplina / Turma / Grupo | Citava apenas "disciplina de Banco de Dados", sem citar Banco de Dados 2, UNITAU nem integrantes | Trabalho de Banco de Dados 2, 6º sem., Eng. da Computação, UNITAU e 4 integrantes |
 | Biblioteca de UI | Informava "Material UI (MUI v5)" | `eventos-web/package.json` usa `@mui/material: ^9.4.0`, `recharts: ^3.10.1`, `react-router-dom: ^7.18.3` e `axios: ^1.20.0` (API compatível com MUI v5+) |
 | Catálogo de endpoints | Não listava a tabela completa dos 19 endpoints na raiz (apenas em `eventos-api/README.md` e `DOCUMENTACAO_COMPLETA.md`) | Existem os 19 endpoints dos 4 controllers + `HealthController` (`/api/health` e `/health`) |
 | Native Query | Mencionava "relatórios com consultas agregadas em SQL nativo" sem detalhar as métricas | `CategoriaRepository` retorna `categoriaId`, `nomeCategoria`, `totalInscricoes`, `totalEventos`, `faturamentoEstimado`; `EventoRepository` retorna `eventoId`, `tituloEvento`, `totalInscritos`, `inscricaoConfirmada`, `precoMedio` |

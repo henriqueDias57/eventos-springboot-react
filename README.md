@@ -3,7 +3,6 @@
 Aplicação web full stack para gerenciamento de **categorias**, **eventos** e **inscrições de participantes**, com relatórios gerenciais calculados diretamente no banco de dados relacional por meio de **Native Queries**.
 
 **Disciplina:** Banco de Dados 2 — 6º Semestre — Engenharia da Computação — **Universidade de Taubaté (UNITAU)**  
-**Entrega:** Segunda entrega (`06/10/2026`)  
 **Integrantes:**
 - Henrique Dias Ferreira
 - Vinicius Souza e Santos
