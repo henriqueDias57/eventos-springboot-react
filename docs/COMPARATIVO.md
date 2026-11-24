@@ -18,7 +18,7 @@
 | 5 | Porta real do frontend vs. README | ✅ Atendido | `eventos-web/vite.config.js` (L7) fixa `port: 3000` (sobrescrevendo o padrão `5173` do Vite), alinhado ao README |
 | 6 | `spring.sql.init.mode=always`, `IF NOT EXISTS` no `schema.sql` e `data.sql` idempotente | ❌ Divergente | `application.properties` (L21) usa `mode=always`, porém `schema.sql` (L6–8) executava `DROP TABLE IF EXISTS ... CASCADE` e `data.sql` fazia `INSERT` direto sem guarda de idempotência — apagando dados a cada restart |
 | 7 | Stack fixa e ausência de autenticação (deploy didático, CORS aberto) | ✅ Atendido | `pom.xml` (Spring Boot 3.2.4, Java 17), `package.json` (React 18, Vite 5, MUI, Recharts, Axios), `CorsConfig.java` (`allowedOriginPatterns("*")`) sem Spring Security |
-| 8 | Segredos commitados (inclusive nos 17 commits do histórico) | ❌ Atenção histórica | `HEAD` (`b92983e`) não tem segredos de nuvem (apenas `postgres`/`postgres` local em `application.properties`), mas os commits históricos `657c70a` e `0a99d02` expuseram `Eventos2026!Master#Secure` e `DbEventos#Postgre2026!Admin` em `AccessSecurityFilter.java` e `GUIA_DE_ACESSO.md`. Recomenda-se não reutilizar essas credenciais |
+| 8 | Segredos commitados (inclusive nos 17 commits do histórico) | ❌ Atenção histórica | `HEAD` (`b92983e`) não tem segredos de nuvem (apenas `postgres`/`postgres` local em `application.properties`), mas os commits históricos `657c70a` e `0a99d02` expuseram credenciais de acesso e banco em `AccessSecurityFilter.java` e `GUIA_DE_ACESSO.md`. Recomenda-se não reutilizar essas credenciais |
 | 9 | Preparação para nuvem (Neon + Render + Vercel) e filtro por categoria na UI | ⚠️ Pendente antes da Etapa 3 | Faltavam `Dockerfile`, variáveis de ambiente em `application.properties`, `VITE_API_URL` no `api.js`, `vercel.json` e seletor de filtro por categoria em `Eventos.jsx` (a API `/api/eventos/categoria/{categoriaId}` existia sem uso na tela) |
 
 ---
@@ -48,7 +48,7 @@
    - `RELATORIO_FRONTEND.md` (raiz) e `eventos-web/RELATORIO_FRONTEND.md` possuíam conteúdo idêntico (mesmo hash SHA-256), descrevendo a **V1** do frontend (Tailwind/glassmorphism, expansão 1:N em tabela, filtro de status e URL antiga `sistema-gerenciamento-eventos`).
    - `eventos-web/RELATORIO_FRONTEND_V2.md` descreve a **V2** real (MUI, tema claro, cards em `Eventos.jsx`, Recharts), porém listava versões genéricas (`MUI 5.x`, `React Router 6.x`, `Recharts 2.x`).
 4. **Lições aprendidas com `RELATORIO_REVERSAO.md` e `RELATORIO_SINCRONIZACAO.md` (commits `657c70a`, `0a99d02`, `1aea615`, `9054f78`):**
-   - A primeira tentativa de deploy usou `localtunnel` (`*.loca.lt`) + `render.yaml` + `AccessSecurityFilter.java` + `AccessGate.jsx` com senha mestra (`Eventos2026!Master#Secure`) e credenciais escritas em `GUIA_DE_ACESSO.md`.
+   - A primeira tentativa de deploy usou `localtunnel` (`*.loca.lt`) + `render.yaml` + `AccessSecurityFilter.java` + `AccessGate.jsx` com senha mestra e credenciais escritas em `GUIA_DE_ACESSO.md`.
    - Como gerou complexidade desnecessária para apresentação acadêmica e expôs segredos no histórico, foi revertida em `1aea615`.
    - **Lições aplicadas agora:**
      - Deploy didático aberto (sem `AccessSecurityFilter` nem `AccessGate`, conforme Regra 6).
