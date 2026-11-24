@@ -155,9 +155,9 @@ Acesse: **`http://localhost:3000`**
 
 > **Aviso de hibernação (Render Free):** no plano gratuito do Render, a API entra em modo de suspensão após ~15 minutos sem uso; o primeiro acesso pode levar cerca de **40 a 60 segundos** para responder.
 
-- **Frontend (Vercel):** *em publicação (Etapa 4)*
-- **API Backend (Render):** *em publicação (Etapa 4)*
-- **Banco de Dados (Neon PostgreSQL):** *em publicação (Etapa 4)*
+- **Frontend (Vercel):** https://eventos-web-psi.vercel.app
+- **API Backend (Render):** https://eventos-api-0xff.onrender.com
+- **Banco de Dados (Neon PostgreSQL):** `ep-gentle-sky-bbh3cgl4.c-15.us-east-1.aws.neon.tech` (banco `db_eventos`)
 
 ---
 
