@@ -47,13 +47,6 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- H2 Database (In-Memory Fallback & Testes) -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <scope>runtime</scope>
-        </dependency>
-
         <!-- Lombok (Getters, Setters, Constructors) -->
         <dependency>
             <groupId>org.projectlombok</groupId>
